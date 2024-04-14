@@ -16,21 +16,21 @@ int main() {
     printf("%d ",key[i]);
   }
   printf("\n");
+
   std::vector<int> bucket(range,0); 
   for (int i=0; i<n; i++)
     bucket[key[i]]++;
   std::vector<int> offset(range,0);
   for (int i=1; i<range; i++) 
     offset[i] = offset[i-1] + bucket[i-1];
-#pragma omp paralell 
+
   for (int i=0; i<range; i++) {
     int j = offset[i];
-    int q = bucket[i];
-    #pragma omp for
-    for (int m=q; m>0; m--) {
+    for (; bucket[i]>0; bucket[i]--) {
       key[j++] = i;
     }
   }
+
   for (int i=0; i<n; i++) {
     printf("%d ",key[i]);
   }
