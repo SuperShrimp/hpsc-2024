@@ -21,6 +21,9 @@ int main() {
       float mi = m[i];
       float xj[N], yj[N];
     for(int j=0; j<N; j++) {
+
+      __m512 y_j_vec = _mm512_load_ps(y);
+      __m512 x_j_vec = _mm512_load_ps(x);
        __m256 alli = _mm256_set1_ps(i);
        __m256 allj = _mm256_set1_ps(j);
       __mmask8 mask = _mm256_cmp_ps_mask(alli, allj, _MM_CMPINT_NE);

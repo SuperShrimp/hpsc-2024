@@ -14,7 +14,6 @@ int main() {
 
   for(int i=0; i<N; i++) {
     for(int j=0; j<N; j++) {
-      a[i] = i;
         if(i!=j){
         float rx = x[i] - x[j];
         float ry = y[i] - y[j];
