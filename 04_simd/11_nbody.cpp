@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include<x86intrin.h>
+#include <avx512vlintrin.h>
 #include <immintrin.h>
 
 int main() {
@@ -12,49 +14,54 @@ int main() {
     m[i] = drand48();
     fx[i] = fy[i] = 0;
   }
-  float a[N], b[N];
-  for(int i=0; i<N; i++) {
-    __m256 fx_vec = _mm256_setzero_ps();
-    __m256 fy_vec = _mm256_setzero_ps();
-      float xi = x[i];
-      float yi = y[i];
-      float mi = m[i];
-      float xj[N], yj[N];
-    for(int j=0; j<N; j++) {
 
-      __m512 y_j_vec = _mm512_load_ps(y);
-      __m512 x_j_vec = _mm512_load_ps(x);
-       __m256 alli = _mm256_set1_ps(i);
-       __m256 allj = _mm256_set1_ps(j);
-      __mmask8 mask = _mm256_cmp_ps_mask(alli, allj, _MM_CMPINT_NE);
-        __m256 xi_vec = _mm256_set1_ps(xi);
-        __m256 yi_vec = _mm256_set1_ps(yi);
-        __m256 zero_vec = _mm256_setzero_ps();
-        __m256 xj_vec = _mm256_mask_blend_ps(mask, zero_vec, _mm256_load_ps(x));
-        __m256 yj_vec = _mm256_mask_blend_ps(mask, zero_vec, _mm256_load_ps(y));
-        __m256 mj_vec = _mm256_mask_blend_ps(mask, zero_vec, _mm256_load_ps(m));
-        __m256 rx = _mm256_sub_ps(xi_vec, xj_vec);
-        __m256 ry = _mm256_sub_ps(yi_vec, yj_vec);
-        __m256 rxy = _mm256_add_ps(_mm256_mul_ps(rx, rx), _mm256_mul_ps(ry, ry));
-        __m256 r1 = _mm256_rsqrt14_ps(rxy);
-        __m256 r3 = _mm256_mul_ps(r1, _mm256_mul_ps(r1, r1));
+for (int i = 0; i < N; i++) {
+        __m256 fx_simd = _mm256_setzero_ps();
+        __m256 fy_simd = _mm256_setzero_ps();
         
-        __m256 fxi_vec = _mm256_div_ps(_mm256_mul_ps(rx, mj_vec), r3);
-        __m256 fyi_vec = _mm256_div_ps(_mm256_mul_ps(ry, mj_vec), r3);
-
-        fx_vec = _mm256_sub_ps(fx_vec, fxi_vec);
-        fy_vec = _mm256_sub_ps(fy_vec, fyi_vec);
+        for (int j = 0; j < N; j ++) {
+            // __m256 x_i_values = _mm256_broadcast_ss(&x[i]);
+            // __m256 y_i_values = _mm256_broadcast_ss(&y[i]);
+             __m256 x_i_values = _mm256_set1_ps(x[i]);
+            __m256 y_i_values = _mm256_set1_ps(y[i]);
+            __m256 x_j_values = _mm256_load_ps(x);
+            __m256 y_j_values = _mm256_load_ps(x);
+            // Load m values for j to j+7
+            __m256 m_values = _mm256_load_ps(m);
+            
+            // Compute rx and ry
+            __m256 rx = _mm256_sub_ps(x_i_values, x_j_values);
+            __m256 ry = _mm256_sub_ps(y_i_values, y_j_values);
+            
+            // Compute r^2
+            __m256 r_squared = _mm256_add_ps(_mm256_mul_ps(rx, rx), _mm256_mul_ps(ry, ry));
+            
+            // Compute r^3
+            __m256 r_cubed = _mm256_mul_ps(r_squared, _mm256_sqrt_ps(r_squared));
+            
+            // Compute m[j] / (r^3)
+            __m256 m_over_r_cubed = _mm256_div_ps(m_values, r_cubed);
+            
+            // Accumulate fx and fy
+            fx_simd = _mm256_sub_ps(fx_simd, _mm256_mul_ps(rx, m_over_r_cubed));
+            fy_simd = _mm256_sub_ps(fy_simd, _mm256_mul_ps(ry, m_over_r_cubed));
         }
-      float fx_temp[N], fy_temp[N];
-      _mm256_store_ps(fx_temp, fx_vec);
-      _mm256_store_ps(fy_temp, fx_vec);
-      for(int m=0; m<N; m++)
-      {
-        fx[i] += fx_temp[m];
-        fy[i] += fy_temp[m];
-      }
-      
-    printf("%d %g %g\n",i,fx[i],fy[i]);
+        
+        // Reduce fx_simd and fy_simd horizontally
+        float fx_temp[8], fy_temp[8];
+        _mm256_storeu_ps(fx_temp, fx_simd);
+        _mm256_storeu_ps(fy_temp, fy_simd);
+        float fx_sum = 0, fy_sum = 0;
+        for (int k = 0; k < 8; ++k) {
+            fx_sum += fx_temp[k];
+            fy_sum += fy_temp[k];
+        }
+        
+        // Update fx[i] and fy[i]
+        fx[i] = fx_sum;
+        fy[i] = fy_sum;
 
-  }
+        // Print results
+        printf("%d %g %g\n", i, fx[i], fy[i]);
+    }
 }
