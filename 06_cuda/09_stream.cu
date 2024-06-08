@@ -15,6 +15,7 @@ int main(void) {
   cudaMallocManaged(&a, N*sizeof(float));
   for (int i=0; i<num_streams; i++) {
     cudaStreamCreate(&streams[i]);
+    //没有用到共享内存，所以0
     block<<<(N+M-1)/M,M,0,streams[i]>>>(a,N);
   }
   cudaDeviceSynchronize();

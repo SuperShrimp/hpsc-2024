@@ -1,5 +1,5 @@
 #include <cstdio>
-
+//must be defined as a global variable because these attributes can not be used inside a host function
 __device__ __managed__ int sum;
 
 __global__ void reduction(int &sum) {

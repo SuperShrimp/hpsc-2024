@@ -11,6 +11,7 @@ int main(void) {
   const int M = 1024;
   float *a;
   cudaMallocManaged(&a, N*sizeof(float));
+  //N+M-1 rounds up to launch enough blocks
   block<<<(N+M-1)/M,M>>>(a,N);
   cudaDeviceSynchronize();
   for (int i=0; i<N; i++)

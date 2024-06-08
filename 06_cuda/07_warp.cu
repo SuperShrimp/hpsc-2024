@@ -4,6 +4,7 @@ __device__ __managed__ int sum;
 
 __device__ int warpSum(int a) {
   for (int offset=16; offset>0; offset >>= 1)
+      //Each bit in the 32-bit unit indicates which of the 32 threads participate
     a += __shfl_down_sync(0xffffffff, a, offset);
   return a;
 }
@@ -11,7 +12,7 @@ __device__ int warpSum(int a) {
 __global__ void reduction(int &sum, int *a) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   int b = warpSum(a[i]);
-  if ((threadIdx.x & 31) == 0)
+  if ((threadIdx.x & 31) == 0) //One thread per warp
     atomicAdd(&sum, b);
 }
 

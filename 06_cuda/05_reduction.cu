@@ -4,6 +4,7 @@ __device__ __managed__ int sum;
 
 __global__ void kernel(int &sum, int *a) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
+  //用AtomicAdd直接把所有元素合并到sum里面
   atomicAdd(&sum, a[i]);
 }
 
