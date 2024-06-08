@@ -27,7 +27,6 @@ def main():
         u_flattened = [float(val) for val in uraw[n].strip().split() if val]
         v_flattened = [float(val) for val in vraw[n].strip().split() if val]
         p_flattened = [float(val) for val in praw[n].strip().split() if val]
-
         for j in range(NY):
             for i in range(NX):
                 u[j, i] = u_flattened[j * NX + i]

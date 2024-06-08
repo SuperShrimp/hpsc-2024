@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <chrono>
 #include <vector>
-#include "hdf5.h"
+#include  "hdf5/openmpi/hdf5.h"
 using namespace std;
 
 int main (int argc, char** argv) {

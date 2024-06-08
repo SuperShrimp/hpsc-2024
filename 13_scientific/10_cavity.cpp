@@ -48,6 +48,7 @@ int main() {
       }
     }
     for (int it=0; it<nit; it++) {
+        //copy p->pn
       for (int j=0; j<ny; j++)
         for (int i=0; i<nx; i++)
 	  pn[j][i] = p[j][i];
